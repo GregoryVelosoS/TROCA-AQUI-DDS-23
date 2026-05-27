@@ -1,12 +1,11 @@
 // importação do model
-const UsuarioModel = require("../models/usuarioModel.js")
+const usuarioModel = require("../models/usuarioModel.js")
 
 // importar pacotes
 // para criptrograffia
 const bcrypt = require('bcrypt')
 // para lidar com cookies
 const jwt = require('jsonwebtoken')
-const usuarioModel = require("../models/usuarioModel.js")
 
 module.exports = {
     //FUNÇÕES DE LOGIN
@@ -50,6 +49,55 @@ module.exports = {
         res.clearCookie('token')
         // Volta pra tela de login
         res.redirect("/login")
-    }
+    },
 
+    // CRUD
+    // CRIAR USUÁRIOS
+    renderizarCadastro: (req,res) => {
+        res.render('usuarios/cadastrar')
+    },
+
+    cadastrar: async (req,res) => {
+        try{
+        // Objeto com as informações preenchidas nos inputs
+        const { nome, email, senha, telefone, perfil } = req.body
+
+        // Não deixa o usuário cadastrar um adm
+        if(perfil === 'administrador'){
+            return res.status(403).render('erro', {mensagem: "Você não possui acesso"})
+        }
+
+        // Multer salva a imagem na pasta, e a variável guarda o nome dela caso o usuário tenha anexado uma imagem
+        const fotoDaPessoa = req.file ? `uploads/usuarios/${req.file.filename}` : null
+
+        // Criptrografa a senha do usuario
+        const senhaHash = await bcrypt.hash(senha, 10)
+
+        // Chama o model passando as informações já corrigidas
+        await usuarioModel.criarUsuario(nome, email, senhaHash, telefone, fotoDaPessoa, perfil )
+        
+        // Variável pra guardar onde tem de redirecionar o usuário
+        let redirecionadoPara = '/login'
+        // Verifica se já tem alguém logado, analisando se há algum token salvo
+        if(req.cookies && req.cookies.token){
+            try{
+                // Lê o token, e se o usuário atual for um adm, redireciona para tela geral dos adm
+                const decodificado = jwt.verify(req.cookies.token, process.env.JWT_SECRET)
+                if (decodificado.perfil === 'administrador'){
+                    redirecionadoPara = '/usuarios'
+                }
+            }
+            catch (erro){
+                // Segue o jogo indo pra login mesmo
+            }
+        }
+        // Ao fim, redireciona o usuário pra onde ele tem que ir, /login ou /usuarios 
+        res.redirect(redirecionadoPara)
+    }
+    catch(erro){
+        console.error(erro)
+        res.status(500).render('erro', 
+            {mensagem: "Erro ao cadastrar usuário"})
+    }
+    } 
 }
