@@ -96,8 +96,20 @@ module.exports = {
     }
     catch(erro){
         console.error(erro)
-        res.status(500).render('erro', 
-            {mensagem: "Erro ao cadastrar usuário"})
+        res.status(500).render('erro', {mensagem: "Erro ao cadastrar usuário"})
     }
-    } 
+    },
+    //READ - LISTAR USUÁRIOS
+    listar: async(req,res) => {
+        try{
+            // Se deu certo, mostra a página de usuários
+            const usuarios = await usuarioModel.listarUsuarios()
+            // Renderiza a tela de usuários, passando o objeto com a lista completa
+            res.render('usuarios/listar', { usuarios })
+        }
+        catch(erro){
+            // se deu erro, mostra a tela de erro padrão pra pessoa
+            res.status(500).render('erro', {mensagem: "Erro ao listar usuários"})           
+        }
+    }
 }
