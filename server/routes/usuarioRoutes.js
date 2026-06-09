@@ -37,4 +37,7 @@ router.get("/", usuarioController.listar);
 //Retornar a página de cadastro
 router.get("/cadastro", usuarioController.renderizarCadastro);
 
+// DELETE - DELETAR UM USUÁRIO
+router.post("/deletar/:id", usuarioController.deletar)
+
 module.exports = router
