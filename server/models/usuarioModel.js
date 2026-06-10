@@ -42,5 +42,34 @@ module.exports = {
     const [resultado] = await db.execute(query, [id])
     // Retorna pro controller o resultado, nesse caso as linhas afetadas pela query
     return resultado.affectedRows
+    },
+
+    // UPDATE
+    // BUSCA POR ID
+    buscarPorId: async(id) => {
+        // Query pra fazer a consulta no banco
+        const query = 'SELECT * FROM usuarios WHERE id = ?'   
+        // Guarda o resultado da consulta na variável
+        const [linhas] = await db.execute(query, [id])
+        // Retorna pro controller o resultado, nesse caso o usuário encontrado
+        return linhas[0]
+    },
+    //FAZ A ATUALIZAÇÃO
+    atualizarUsuario: async (id, nome, email, senhaHash, telefone, foto, perfil) => {
+        // Lógica para atualizar com e sem foto anexada
+        if(foto){
+            const query = `UPDATE usuarios 
+                           SET nome = ?, email = ?, senha = ?, telefone = ?, foto = ?, perfil = ?
+                           WHERE id = ?`   
+            const [resultado] = await db.execute(query, [nome, email, senhaHash, telefone, foto, perfil, id])
+            return resultado.affectedRows
+        }
+        else{
+            const query = `UPDATE usuarios 
+                           SET nome = ?, email = ?, senha = ?, telefone = ?, perfil = ?
+                           WHERE id = ?`   
+            const [resultado] = await db.execute(query, [nome, email, senhaHash, telefone, perfil, id])
+            return resultado.affectedRows
+        }
     }
 }

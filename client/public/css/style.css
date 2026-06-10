@@ -134,7 +134,7 @@ label{
     padding: 5px;
     background-color: var(--cor-fundo);
     text-align: center;
-    display: none;
+    /* display: none; */
     border-radius: var(--radius-padrao);
 }
 
