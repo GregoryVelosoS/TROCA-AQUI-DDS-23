@@ -35,16 +35,20 @@ router.get('/editar/:id', somenteOfertante, produtoController.editar);
 // UPDATE - ATUALIZA AS INFORMAÇOES DE UM PRODUTO
 router.post('/atualizar/:id', somenteOfertante, upload.single('foto'), produtoController.atualizar);
 
-// ROTA DE ALTERNAR VISIBILIDADE DO PRODUTO
-// ROTA VEM AQUI
-
-// ROTAS GERAIS (Ofertantes e Interessados veem a Vitrine e dão Match)
-router.post('/alternar-visibilidade/:id', somenteOfertante, produtoController.alternarVisibilidade);
+// ROTAS GERAIS 
 
 // Obtém a lista de todos os produtos com visibilidade ativa
 router.get("/vitrine", usuariosComuns, produtoController.listarVitrine )
 
+// Obtém a lista de todos os interessados
+router.get("/interessados", somenteOfertante, produtoController.listarInteressados )
+
+// ROTA DE ALTERNAR VISIBILIDADE DO PRODUTO
+// Rota POST engatilhada pelo botão da Vitrine (Toggle de Interesse)
+router.post('/alternar-visibilidade/:id', somenteOfertante, produtoController.alternarVisibilidade);
+
 // ROTA DE ALTERNAR INTERESSE DO PRODUTO
-// ROTA VEM AQUI
+// Rota POST engatilhada pelo botão da Vitrine (Toggle de Interesse)
+router.post('/alternar-interesse/:id', usuariosComuns, produtoController.alternarInteresse);
 
 module.exports = router

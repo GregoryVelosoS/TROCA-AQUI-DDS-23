@@ -82,7 +82,57 @@ module.exports = {
         await db.execute(query, [id]);
     },
 
-    // FUNÇÃO PRA ALTERNAR A INTERESSE VEM AQUI
-    // Algo vem aqui
+    // Ele une as 3 tabelas (Interesses -> Produtos -> Usuários) para capturar
+    // o Nome e o Telefone do Interessado que clicou nos produtos DELE.
+    buscarInteressadosNosMeusProdutos: async (id_ofertante) => {
+        const query = `
+            SELECT 
+                i.data_interesse,
+                p.id AS id_produto,
+                p.nome AS nome_produto,
+                u.nome AS nome_interessado,
+                u.telefone AS telefone_interessado
+            FROM interesses i
+            INNER JOIN produtos p ON i.id_produto = p.id
+            INNER JOIN usuarios u ON i.id_interessado = u.id
+            WHERE p.id_usuario = ?
+            ORDER BY i.data_interesse DESC
+        `;
+        // Passamos o 'id_ofertante' no lugar da interrogação (?) para filtrar os itens dele
+        const [linhas] = await db.execute(query, [id_ofertante]);
+        return linhas;
+    },
+
+    // ========================================================
+    // LÓGICA DE INTERESSES 
+    // ========================================================
+
+    // 1. Grava no banco que "Pessoa X quer Produto Y"
+    registrarInteresse: async (id_produto, id_interessado) => {
+        const query = 'INSERT INTO interesses (id_produto, id_interessado) VALUES (?, ?)';
+        const [resultado] = await db.execute(query, [id_produto, id_interessado]);
+        return resultado.insertId;
+    },
+
+    // NOVA FUNÇÃO: Checar se o interesse já existe (Para decidir entre Adicionar ou Remover)
+    checarInteresse: async (id_produto, id_interessado) => {
+        const query = 'SELECT * FROM interesses WHERE id_produto = ? AND id_interessado = ?';
+        const [linhas] = await db.execute(query, [id_produto, id_interessado]);
+        return linhas.length > 0;
+    },
+
+    // NOVA FUNÇÃO: Remover interesse
+    removerInteresse: async (id_produto, id_interessado) => {
+        const query = 'DELETE FROM interesses WHERE id_produto = ? AND id_interessado = ?';
+        await db.execute(query, [id_produto, id_interessado]);
+    },
+
+    // NOVA FUNÇÃO: Buscar todos os IDs de produtos que o usuário logado se interessou
+    buscarInteressesDoUsuario: async (id_interessado) => {
+        const query = 'SELECT id_produto FROM interesses WHERE id_interessado = ?';
+        const [linhas] = await db.execute(query, [id_interessado]);
+        // Mapeia e retorna um array simples só com os IDs (Ex: [1, 5, 8])
+        return linhas.map(linha => linha.id_produto);
+    },
 
 };

@@ -129,7 +129,7 @@ module.exports = {
             // Verifica o que o usuário logado já curtiu
             let meusInteresses = [];
             if (req.usuario) {
-                // Algo vem aqui
+                meusInteresses = await produtoModel.buscarInteressesDoUsuario(req.usuario.id);
             }
 
             // Rederiza a página de vitrine, passando os produtos gerais e todos os curtidos 
@@ -139,7 +139,48 @@ module.exports = {
         }
     },
 
-    // FUNÇÃO PRA ALTERNAR A INTERESSE VEM AQUI
-    // Algo vem aqui
+        // READ
+    listarInteressados: async (req, res) => {
+        try {
+            // Pegamos o ID do dono através da Sessão/JWT da Rota! (req.usuario)
+            const idOfertante = req.usuario.id; 
 
+            // Busca quem teve interesse nos produtos dele (O Join do SQL)
+            const interessados = await produtoModel.buscarInteressadosNosMeusProdutos(idOfertante);
+
+            // Renderiza passando as DUAS variáveis para o painel!
+            res.render('vitrine/interessados', { interessados: interessados });
+
+        } catch (erro) {
+            res.status(500).render('erro', { mensagem: 'Erro ao buscar dashboard.' });
+        }
+    },
+
+    // === TOGGLE DE INTERESSE (BOTÃO CORAÇÃO) ===
+    // Engatilhado quando o usuário clica no botão da Vitrine
+    alternarInteresse: async (req, res) => {
+        try {
+            //Pega o Id do produto clicado no momento
+            const idProduto = req.params.id; 
+
+            // Pegamos o ID do dono através da Sessão/JWT da Rota! (req.usuario)
+            const idInteressado = req.usuario.id; 
+
+            // Checa se já clicou antes
+            const jaTemInteresse = await produtoModel.checarInteresse(idProduto, idInteressado);
+
+            if (jaTemInteresse) {
+                // Se o botão estava preto (Estado 2), ele remove o interesse
+                await produtoModel.removerInteresse(idProduto, idInteressado);
+            } else {
+                // Se o botão estava vermelho (Estado 1), ele registra
+                await produtoModel.registrarInteresse(idProduto, idInteressado);
+            }
+            
+            // Redireciona de volta para continuar navegando
+            res.redirect('/produtos/vitrine');
+        } catch (erro) {
+            res.status(500).render('erro', { mensagem: 'Erro ao processar interesse.' });
+        }
+    }
 }
